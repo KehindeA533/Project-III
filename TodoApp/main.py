@@ -43,3 +43,16 @@ async def get_single_todos(db: db_dependency, id: int = Path(gt=0)):
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND, details="Todo not found."
     )
+
+
+@app.post("/Todos", status_code=status.HTTP_201_CREATED)
+async def create_todo(db: db_dependency, todo_request: TodoRequest):
+    """_summary_
+
+    This line of code takes a TodoRequest object, converts it into a dictionary using model_dump(),
+    and then uses that dictionary to create a new instance of the Todos class.
+    It essentially transforms a request for a todo item into a database entry
+    """
+    todo_model = Todos(**todo_request.model_dump())
+    db.add(todo_model)
+    db.commit()
