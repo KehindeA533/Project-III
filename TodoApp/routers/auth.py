@@ -5,10 +5,17 @@ from db import SessionLocal
 from sqlalchemy.orm import Session
 from models import Users
 from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordRequestForm
+from jose import jwt
+import os
+
 
 router = APIRouter()
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+SECRET_KEY = os.environ.get("SECRET_KEY")
+ALGORITHM = os.environ.get("ALGORITHM")
 
 
 class UserRequest(BaseModel):
@@ -31,6 +38,15 @@ def get_db():
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
+def authenticate_user(username: str, password: str, db):
+    user = db.query(Users).filter(Users.username == username).first()
+    if not user:
+        return False
+    if not bcrypt_context.verify(password, user.hashed_password):
+        return False
+    return True
+
+
 @router.post("/auth", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency, user_request: UserRequest):
     user_model = Users(
@@ -45,3 +61,13 @@ async def create_user(db: db_dependency, user_request: UserRequest):
 
     db.add(user_model)
     db.commit()
+
+
+@router.post("/token")
+async def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency
+):
+    user = authenticate_user(form_data.username, form_data.password, db)
+    if not user:
+        return "Fail Auth"
+    return "Successful Auth"
