@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi import Depends, APIRouter, HTTPException, Path, status
 from models import Todos
 from db import SessionLocal
+from .auth import get_current_user
 
 router = APIRouter()
 
@@ -16,8 +17,8 @@ def get_db():
         db.close()
 
 
-# What is the purpose / need for this?
 db_dependency = Annotated[Session, Depends(get_db)]
+user_dependency = Annotated[dict, Depends(get_current_user)]
 
 
 class TodoRequest(BaseModel):
@@ -28,13 +29,31 @@ class TodoRequest(BaseModel):
 
 
 @router.get("/Todos", status_code=status.HTTP_200_OK)
-async def read_all(db: db_dependency):
-    return db.query(Todos).all()
+async def read_all(user: user_dependency, db: db_dependency):
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication Failed"
+        )
+
+    return db.query(Todos).filter(Todos.owner_id == user.get("id")).all()
 
 
 @router.get("/Todos/{id}", status_code=status.HTTP_200_OK)
-async def get_single_todos(db: db_dependency, id: int = Path(gt=0)):
-    todo_model = db.query(Todos).filter(Todos.id == id).first()
+async def get_single_todos(
+    user: user_dependency, db: db_dependency, id: int = Path(gt=0)
+):
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication Failed"
+        )
+
+    todo_model = (
+        db.query(Todos)
+        .filter(Todos.id == id)
+        .filter(Todos.owner_id == user.get("id"))
+        .first()
+    )
     if todo_model is not None:
         return todo_model
     raise HTTPException(
@@ -43,14 +62,20 @@ async def get_single_todos(db: db_dependency, id: int = Path(gt=0)):
 
 
 @router.post("/Todos", status_code=status.HTTP_201_CREATED)
-async def create_todo(db: db_dependency, todo_request: TodoRequest):
+async def create_todo(
+    user: user_dependency, db: db_dependency, todo_request: TodoRequest
+):
     """_summary_
 
     This line of code takes a TodoRequest object, converts it into a dictionary using model_dump(),
     and then uses that dictionary to create a new instance of the Todos class.
     It essentially transforms a request for a todo item into a database entry
     """
-    todo_model = Todos(**todo_request.model_dump())
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication Failed"
+        )
+    todo_model = Todos(**todo_request.model_dump(), owner_id=user.get("id"))
     db.add(todo_model)
     db.commit()
 
