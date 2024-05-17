@@ -6,7 +6,7 @@ from db import SessionLocal
 from sqlalchemy.orm import Session
 from models import Users
 from passlib.context import CryptContext
-from fastapi.security import OAuth2PasswordRequestForm, OAuth2AuthorizationCodeBearer
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt
 import os
 from dotenv import load_dotenv
@@ -43,7 +43,7 @@ This can be used to hash and verify passwords securely using the bcrypt algorith
 """
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_bearer = OAuth2AuthorizationCodeBearer(tokenUrl="token")
+oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/token")
 
 load_dotenv()
 
@@ -92,7 +92,7 @@ def create_access_token(username: str, user_id: int, expires_delta: timedelta):
     return jwt.encode(encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-@router.post("/auth", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_user(db: db_dependency, user_request: UserRequest):
     user_model = Users(
         email=user_request.email,
