@@ -12,7 +12,35 @@ import os
 from dotenv import load_dotenv
 
 
-router = APIRouter()
+"""
+APIRouter instance for defining and grouping API routes.
+
+This router can be used to organize and manage routes in a FastAPI application. Routes added to this router
+can be mounted to the main application router with a specified prefix and set of tags.
+
+This router is prefixed with "/auth" and includes all routes under the "auth" tag.
+
+Attributes:
+    prefix (str): The prefix for all routes defined in this router. All endpoints will start with "/auth".
+    tags (list): A list of tags associated with the routes in this router. In this case, it is ["auth"].
+"""
+router = APIRouter(prefix="/auth", tags=["auth"])
+
+"""
+Initialize a CryptContext for bcrypt hashing.
+
+This CryptContext is configured to use the bcrypt algorithm for hashing 
+passwords. The `deprecated` parameter is set to "auto", which allows 
+automatic handling of deprecated algorithms by the library.
+
+Attributes:
+    schemes (list): A list of hashing schemes to be supported by the context.
+                    In this case, only "bcrypt" is included.
+    deprecated (str): A string indicating how deprecated algorithms should
+                      be handled. "auto" enables automatic management.
+
+This can be used to hash and verify passwords securely using the bcrypt algorithm.
+"""
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_bearer = OAuth2AuthorizationCodeBearer(tokenUrl="token")
