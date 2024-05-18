@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [master, main]
   push:
-    branches: [main]
+    branches: [master, main]
 
 jobs:
   test_pull_request:
@@ -27,8 +27,7 @@ jobs:
         run: |
           pytest
 
-  test_merge_to_main:
-    if: github.event_name == 'push'
+  test_push:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
