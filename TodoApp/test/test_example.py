@@ -1,6 +1,6 @@
 def test_equal_or_not_equal():
     assert 3 == 3
-    assert 3 != 9
+    assert 3 != 8
 
 
 def test_is_instance():
