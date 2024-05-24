@@ -3,7 +3,6 @@
 # from sqlalchemy.orm import sessionmaker
 # from db import Base
 # from ..main import app
-# from ..routers import get_db, get_current_user
 # from fastapi.testclient import TestClient
 # from fastapi.testclient import status
 
