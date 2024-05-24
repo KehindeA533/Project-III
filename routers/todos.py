@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi import Depends, APIRouter, HTTPException, Path, status
 from models import Todos
 from db import SessionLocal
-from .auth import get_current_user
+from .auth import get_db, get_current_user
 
 router = APIRouter()
 
