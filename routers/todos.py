@@ -1,12 +1,25 @@
+# import sys
+# sys.path.append('..')
+
+# import models
 from typing import Annotated
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-from fastapi import Depends, APIRouter, HTTPException, Path, status
+from fastapi import Depends, APIRouter, HTTPException, Path, status, Request
 from models import Todos
 from db import SessionLocal
 from .auth import get_current_user
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
-router = APIRouter()
+router = APIRouter(
+    # prefix="/todos",
+    # tags=['todos'],
+    # responses={404: {"description": "Not found"}}
+)
+
+# models.Base.metadata.create_all(bind=engine)
+templates = Jinja2Templates(directory="templates")
 
 
 def get_db():
@@ -24,8 +37,13 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 class TodoRequest(BaseModel):
     title: str = Field(min_length=3)
     description: str = Field(min_length=3, max_length=100)
-    priority: int = Field(gt=0, lt=6)
+    priority: int = Field(gt=0, lt=6, description="The prority must be between 1 - 5")
     complete: bool
+
+
+@router.get("/test")
+async def test(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
 
 
 @router.get("/Todos", status_code=status.HTTP_200_OK)
